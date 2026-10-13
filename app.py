@@ -135,7 +135,7 @@ def save_cloud_record(settings, record):
 
 st.title("🌱 Inua MamaLink")
 st.caption("Digital Maternal and Child Nutrition Supply Intelligence | Inua Slice Foods Ltd")
-st.For aggregate supply records only. Do not enter personal or medical information.
+
 
 settings = cloud_settings()
 choices = ["Practice with fictional records", "Start with an empty table", "Connected Google Sheet"]
