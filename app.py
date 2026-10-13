@@ -1,4 +1,4 @@
-"""Inua MamaLink v2: aggregate-only nutrition supply coordination.
+"""Inua MamaLink v2.1: aggregate-only nutrition supply coordination.
 
 Optional private Google Sheet storage with server-side editor authentication.
 Educational prototype only; no patient or identifying personal information.
@@ -66,28 +66,66 @@ def cloud_settings():
         return None
 
 
+class SetupProblem(Exception):
+    """An intentionally non-sensitive diagnostic shown to the app operator."""
+
+
+SETUP_HINTS = {
+    "JSON_FORMAT": "The pasted Google credential JSON is not complete or has changed formatting. Recopy the ENTIRE downloaded JSON file into the Streamlit secret, including opening { and closing }.",
+    "KEY_FIELDS": "The Google credential JSON is missing required fields or its private key is invalid. Recopy the ENTIRE JSON file into Streamlit Secrets. If still failing, create a new key in Google Cloud and replace the old credential securely.",
+    "SERVICE_ACCOUNT": "Google could not read the service-account private key. Recopy the full JSON file, including the long private_key value, without editing it. If it still fails, create a replacement JSON key in Google Cloud and update the secret.",
+    "SHEET_ACCESS": "Google cannot access this spreadsheet. Confirm the Sheet ID and share the correct spreadsheet with the service-account email as Editor. Keep General access Restricted.",
+    "SHEET_API": "Google rejected the spreadsheet request. Check the Google Sheets API, service-account sharing and spreadsheet ID.",
+    "SHEET_HEADER": "Check Row 1 of the FIRST worksheet tab. It must contain these six headings in order: date, ward, group, item, requested, delivered. Uppercase is fine.",
+    "SHEET_ROWS": "The spreadsheet was found, but at least one data row has invalid values. Keep only the six headings while testing, or review dates, blanks and requested/delivered numbers.",
+}
+
+
 def connected_worksheet(settings):
-    info = json.loads(settings["google_credentials_json"])
-    client = gspread.service_account_from_dict(
-        info,
-        scopes=["https://www.googleapis.com/auth/spreadsheets"],
-    )
-    return client.open_by_key(settings["google_sheet_id"]).sheet1
+    try:
+        info = json.loads(settings["google_credentials_json"])
+    except (ValueError, TypeError):
+        raise SetupProblem("JSON_FORMAT") from None
+    if not isinstance(info, dict) or not all(info.get(k) for k in ("type", "client_email", "private_key", "token_uri")):
+        raise SetupProblem("KEY_FIELDS") from None
+    if info.get("type") != "service_account":
+        raise SetupProblem("KEY_FIELDS") from None
+    try:
+        client = gspread.service_account_from_dict(
+            info,
+            scopes=["https://www.googleapis.com/auth/spreadsheets"],
+        )
+    except (ValueError, TypeError, KeyError):
+        raise SetupProblem("SERVICE_ACCOUNT") from None
+    try:
+        return client.open_by_key(settings["google_sheet_id"]).sheet1
+    except gspread.exceptions.SpreadsheetNotFound:
+        raise SetupProblem("SHEET_ACCESS") from None
+    except gspread.exceptions.APIError:
+        raise SetupProblem("SHEET_API") from None
+    except ValueError:
+        raise SetupProblem("SHEET_ACCESS") from None
 
 
 def read_cloud_data(settings):
-    rows = connected_worksheet(settings).get_all_values()
+    try:
+        rows = connected_worksheet(settings).get_all_values()
+    except gspread.exceptions.APIError:
+        raise SetupProblem("SHEET_API") from None
     if not rows:
-        raise ValueError("Add the six column headings to Row 1 of your Google Sheet first.")
+        raise SetupProblem("SHEET_HEADER") from None
     headers = [value.strip().lower() for value in rows[0]]
     if headers[:len(REQUIRED)] != REQUIRED:
-        raise ValueError("Row 1 must be: " + ", ".join(REQUIRED))
+        raise SetupProblem("SHEET_HEADER") from None
     data_rows = []
     for row in rows[1:]:
         if not any(cell.strip() for cell in row):
             continue
         data_rows.append((row + [""] * len(REQUIRED))[:len(REQUIRED)])
-    return checked_data(pd.DataFrame(data_rows, columns=REQUIRED))
+    try:
+        return checked_data(pd.DataFrame(data_rows, columns=REQUIRED))
+    except (ValueError, TypeError, KeyError):
+        raise SetupProblem("SHEET_ROWS") from None
 
 
 def save_cloud_record(settings, record):
@@ -120,7 +158,7 @@ if connected:
         st.sidebar.warning("Google Sheet not configured yet. Set the 3 credentials in Streamlit Cloud Secrets.")
         st.info("To connect your Google Sheet, configure **google_sheet_id**, **google_credentials_json**, and **editor_password** in Streamlit Cloud app settings → Secrets.")
         st.stop()
-    st.sidebar.success("Google Sheet workspace selected. Records persist in your private spreadsheet.")
+    st.sidebar.info("Private Google Sheet workspace selected. Connection check in progress.")
     if st.session_state.get("editor_unlocked", False):
         st.sidebar.success("Editing unlocked for this browser session")
         if st.sidebar.button("Lock editing"):
@@ -138,12 +176,18 @@ if connected:
                 st.sidebar.error("Incorrect password")
     try:
         records = read_cloud_data(settings)
-    except Exception as error:
-        st.error("Could not load Google Sheet. Check that the sheet is shared with the service-account email as Editor, that the Sheets API is enabled, and that the credentials and sheet ID are correct.")
-        with st.expander("Technical error details"):
-            # Avoid exposing credentials and secrets in on-screen errors.
-            st.write(type(error).__name__)
+    except SetupProblem as error:
+        st.error("Google Sheets connection needs a correction.")
+        st.info(SETUP_HINTS[str(error)])
+        with st.expander("Safe diagnostic code (no keys or passwords)"):
+            st.code(str(error))
         st.stop()
+    except Exception as error:
+        st.error("An unexpected problem occurred while opening the Google Sheet.")
+        with st.expander("Safe diagnostic (no keys or passwords)"):
+            st.code(type(error).__name__)
+        st.stop()
+    st.sidebar.success("Google Sheets connected — data loaded successfully.")
     uploaded = None
 else:
     st.sidebar.info("In this workspace, entries are temporary. Download your CSV before closing.")
