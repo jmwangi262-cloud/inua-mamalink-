@@ -134,12 +134,8 @@ def save_cloud_record(settings, record):
     connected_worksheet(settings).append_row(data, value_input_option="RAW")
 
 st.title("🌱 Inua MamaLink")
-st.caption("A beginner-built demonstration for aggregate maternal nutrition logistics | Inua Slice Foods Ltd")
-st.warning(
-    "DEMONSTRATION ONLY. Do not enter names, phone numbers, health records, "
-    "pregnancy details, patient identifiers or sensitive personal information. "
-    "This is not a medical device, and it does not provide medical advice."
-)
+st.caption("Digital Maternal and Child Nutrition Supply Intelligence | Inua Slice Foods Ltd")
+st.For aggregate supply records only. Do not enter personal or medical information.
 
 settings = cloud_settings()
 choices = ["Practice with fictional records", "Start with an empty table", "Connected Google Sheet"]
