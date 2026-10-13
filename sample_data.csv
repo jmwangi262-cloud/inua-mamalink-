@@ -1,0 +1,28 @@
+date,ward,group,item,requested,delivered
+2026-08-17,Kasuku,Pregnant women,Nutrition product units,9,7
+2026-08-17,Mirangine,Breastfeeding mothers,Nutrition product units,15,12
+2026-08-17,Other area,Caregivers of children under 2,Nutrition product units,21,17
+2026-08-24,Kasuku,Breastfeeding mothers,Nutrition product units,12,9
+2026-08-24,Mirangine,Caregivers of children under 2,Nutrition product units,18,14
+2026-08-24,Other area,Pregnant women,Nutrition product units,24,19
+2026-08-31,Kasuku,Caregivers of children under 2,Nutrition product units,15,11
+2026-08-31,Mirangine,Pregnant women,Nutrition product units,21,16
+2026-08-31,Other area,Breastfeeding mothers,Nutrition product units,23,17
+2026-09-07,Kasuku,Pregnant women,Nutrition product units,18,16
+2026-09-07,Mirangine,Breastfeeding mothers,Nutrition product units,20,17
+2026-09-07,Other area,Caregivers of children under 2,Nutrition product units,26,22
+2026-09-14,Kasuku,Breastfeeding mothers,Nutrition product units,17,14
+2026-09-14,Mirangine,Caregivers of children under 2,Nutrition product units,23,19
+2026-09-14,Other area,Pregnant women,Nutrition product units,29,24
+2026-09-21,Kasuku,Caregivers of children under 2,Nutrition product units,20,16
+2026-09-21,Mirangine,Pregnant women,Nutrition product units,26,21
+2026-09-21,Other area,Breastfeeding mothers,Nutrition product units,32,26
+2026-09-28,Kasuku,Pregnant women,Nutrition product units,23,21
+2026-09-28,Mirangine,Breastfeeding mothers,Nutrition product units,29,26
+2026-09-28,Other area,Caregivers of children under 2,Nutrition product units,31,27
+2026-10-05,Kasuku,Breastfeeding mothers,Nutrition product units,26,23
+2026-10-05,Mirangine,Caregivers of children under 2,Nutrition product units,28,24
+2026-10-05,Other area,Pregnant women,Nutrition product units,34,29
+2026-10-12,Kasuku,Caregivers of children under 2,Nutrition product units,25,21
+2026-10-12,Mirangine,Pregnant women,Nutrition product units,31,26
+2026-10-12,Other area,Breastfeeding mothers,Nutrition product units,37,31
